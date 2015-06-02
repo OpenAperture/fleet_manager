@@ -2,3 +2,5 @@
 /deps
 erl_crash.dump
 *.ez
+notes.txt
+deployer.sublime-workspace
