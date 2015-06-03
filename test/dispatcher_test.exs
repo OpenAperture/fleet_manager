@@ -12,6 +12,8 @@ defmodule OpenAperture.FleetManager.DispatcherTest do
   alias OpenAperture.Messaging.RpcRequest
 
   alias OpenAperture.FleetManager.MessageManager
+  alias OpenAperture.FleetManager.Request, as: FleetRequest
+  alias OpenAperture.FleetManager.FleetActions  
 
   # ===================================
   # register_queues tests
@@ -82,5 +84,50 @@ defmodule OpenAperture.FleetManager.DispatcherTest do
   after
     :meck.unload(MessageManager)
     :meck.unload(SubscriptionHandler)
+  end  
+
+  #============================
+  # process_request tests
+
+  test "process_request - FleetActions success" do
+    :meck.new(MessageManager, [:passthrough])
+    :meck.expect(MessageManager, :remove, fn _ -> %{} end)
+
+    :meck.new(SubscriptionHandler, [:passthrough])
+    :meck.expect(SubscriptionHandler, :acknowledge_rpc, fn _,_,_,request -> 
+      assert request.status == :completed
+      assert request.response_body == %{}
+      :ok 
+    end)
+
+    :meck.new(FleetActions, [:passthrough])
+    :meck.expect(FleetActions, :execute, fn _ -> {:ok, %{}} end)
+
+    Dispatcher.process_request("123abc", %{})
+  after
+    :meck.unload(MessageManager)
+    :meck.unload(SubscriptionHandler)    
+    :meck.unload(FleetActions)
+  end
+
+  test "process_request - FleetActions fails" do
+    :meck.new(MessageManager, [:passthrough])
+    :meck.expect(MessageManager, :remove, fn _ -> %{} end)
+
+    :meck.new(SubscriptionHandler, [:passthrough])
+    :meck.expect(SubscriptionHandler, :acknowledge_rpc, fn _,_,_,request -> 
+      assert request.status == :error
+      assert request.response_body == "bad news bears"
+      :ok 
+    end)
+
+    :meck.new(FleetActions, [:passthrough])
+    :meck.expect(FleetActions, :execute, fn _ -> {:error, "bad news bears"} end)
+
+    Dispatcher.process_request("123abc", %{})
+  after
+    :meck.unload(MessageManager)
+    :meck.unload(SubscriptionHandler)    
+    :meck.unload(FleetActions)
   end  
 end

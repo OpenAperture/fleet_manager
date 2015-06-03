@@ -68,38 +68,51 @@ defmodule OpenAperture.FleetManager.Dispatcher do
     options = OpenAperture.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerApi.get_api, Configuration.get_current_broker_id)
     subscribe(options, fleet_manager_queue, fn(payload, _meta, %{delivery_tag: delivery_tag} = async_info) -> 
       MessageManager.track(async_info)
-
-      request = RpcRequest.from_payload(payload)
-      try do
-        Logger.debug("Starting to process request #{delivery_tag}...")
-        fleet_request = FleetRequest.from_payload(request.request_body)
-
-        request = case FleetActions.execute(fleet_request) do
-          {:ok, response} ->
-            %{request | 
-              status: :completed,
-              response_body: response,
-            }
-          {:error, reason} ->
-            %{request | 
-              status: :error,
-              response_body: reason,
-            }
-        end
-
-        acknowledge(delivery_tag, request)
-      catch
-        :exit, code   -> 
-          Logger.error("Message #{delivery_tag} Exited with code #{inspect code}.  Payload:  #{inspect payload}")
-          acknowledge(delivery_tag, request)
-        :throw, value -> 
-          Logger.error("Message #{delivery_tag} Throw called with #{inspect value}.  Payload:  #{inspect payload}")
-          acknowledge(delivery_tag, request)
-        what, value   -> 
-          Logger.error("Message #{delivery_tag} Caught #{inspect what} with #{inspect value}.  Payload:  #{inspect payload}")
-          acknowledge(delivery_tag, request)
-      end      
+      process_request(delivery_tag, payload)
     end)
+  end
+
+  @doc """
+  Method to process FleetManager requests
+  
+  ## Options
+
+  The `delivery_tag` option is the unique identifier of the message
+
+  The `payload` defines the Messaging payload
+
+  """
+  @spec process_request(String.t(), Map) :: term
+  def process_request(delivery_tag, payload) do
+    request = RpcRequest.from_payload(payload)
+    try do
+      Logger.debug("Starting to process request #{delivery_tag}...")
+      fleet_request = FleetRequest.from_payload(request.request_body)
+
+      request = case FleetActions.execute(fleet_request) do
+        {:ok, response} ->
+          %{request | 
+            status: :completed,
+            response_body: response,
+          }
+        {:error, reason} ->
+          %{request | 
+            status: :error,
+            response_body: reason,
+          }
+      end
+      acknowledge(delivery_tag, request)
+    catch
+      :exit, code   -> 
+        Logger.error("Message #{delivery_tag} Exited with code #{inspect code}.  Payload:  #{inspect payload}")
+        acknowledge(delivery_tag, request)
+      :throw, value -> 
+        Logger.error("Message #{delivery_tag} Throw called with #{inspect value}.  Payload:  #{inspect payload}")
+        acknowledge(delivery_tag, request)
+      what, value   -> 
+        Logger.error("Message #{delivery_tag} Caught #{inspect what} with #{inspect value}.  Payload:  #{inspect payload}")
+        acknowledge(delivery_tag, request)
+    end       
   end
 
   @doc """
