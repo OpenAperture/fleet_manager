@@ -98,19 +98,34 @@ defmodule OpenAperture.FleetManager.Dispatcher do
         {:error, reason} ->
           %{request | 
             status: :error,
-            response_body: reason,
+            response_body: %{errors: ["#{inspect reason}"]},
           }
       end
       acknowledge(delivery_tag, request)
     catch
       :exit, code   -> 
-        Logger.error("Message #{delivery_tag} Exited with code #{inspect code}.  Payload:  #{inspect payload}")
+        error_msg = "Message #{delivery_tag} Exited with code #{inspect code}"
+        Logger.error(error_msg)
+        request = %{request | 
+          status: :error,
+          response_body: %{errors: [error_msg]}
+        }
         acknowledge(delivery_tag, request)
       :throw, value -> 
-        Logger.error("Message #{delivery_tag} Throw called with #{inspect value}.  Payload:  #{inspect payload}")
+        error_msg = "Message #{delivery_tag} Throw called with #{inspect value}"
+        Logger.error(error_msg)
+        request = %{request | 
+          status: :error,
+          response_body: %{errors: [error_msg]}
+        }
         acknowledge(delivery_tag, request)
       what, value   -> 
-        Logger.error("Message #{delivery_tag} Caught #{inspect what} with #{inspect value}.  Payload:  #{inspect payload}")
+        error_msg = "Message #{delivery_tag} Caught #{inspect what} with #{inspect value}"
+        Logger.error(error_msg)
+        request = %{request | 
+          status: :error,
+          response_body: %{errors: [error_msg]}
+        }        
         acknowledge(delivery_tag, request)
     end       
   end
@@ -129,7 +144,8 @@ defmodule OpenAperture.FleetManager.Dispatcher do
   def acknowledge(delivery_tag, request) do
     message = MessageManager.remove(delivery_tag)
     unless message == nil do
-      SubscriptionHandler.acknowledge_rpc(message[:subscription_handler], message[:delivery_tag], ManagerApi.get_api, request)
+      Logger.debug("Acknowledging message #{delivery_tag}...")
+      SubscriptionHandler.acknowledge_rpc(message[:subscription_handler], delivery_tag, ManagerApi.get_api, request)
     end
   end
 
@@ -148,7 +164,8 @@ defmodule OpenAperture.FleetManager.Dispatcher do
   def reject(delivery_tag, request, redeliver \\ false) do
     message = MessageManager.remove(delivery_tag)
     unless message == nil do
-      SubscriptionHandler.reject_rpc(message[:subscription_handler], message[:delivery_tag], ManagerApi.get_api, request, redeliver)
+      Logger.debug("Rejecting message #{delivery_tag}...")
+      SubscriptionHandler.reject_rpc(message[:subscription_handler], delivery_tag, ManagerApi.get_api, request, redeliver)
     end
   end
 end

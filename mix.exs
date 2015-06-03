@@ -40,7 +40,7 @@ defmodule OpenAperture.FleetManager.Mixfile do
       {:ex_doc, github: "elixir-lang/ex_doc", only: [:test], override: true},
       {:earmark, github: "pragdave/earmark", tag: "v0.1.8", only: [:test], override: true},    
       
-      {:openaperture_messaging, git: "https://github.com/OpenAperture/messaging.git", ref: "f1bce6a6e889aa4f59728462bf4acab7bcbb7db6", override: true},
+      {:openaperture_messaging, git: "https://github.com/OpenAperture/messaging.git", ref: "fa8eb8128176d010d29780251e4ce500068e3ec1", override: true},
       {:openaperture_manager_api, git: "https://github.com/OpenAperture/manager_api.git", ref: "8e2f6bdbf9f93dcae2540b1313f9d6dfc0a254a6", override: true},
       {:openaperture_overseer_api, git: "https://github.com/OpenAperture/overseer_api.git", ref: "25c779ea50565cdb3f783cba644294e6238ed72a", override: true},
       {:openaperture_fleet, git: "https://github.com/OpenAperture/fleet.git", ref: "2e63b7889c76f4d3b749146f3ebceb01702cf012", override: true},

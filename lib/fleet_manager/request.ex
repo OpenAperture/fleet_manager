@@ -11,6 +11,22 @@ defmodule OpenAperture.FleetManager.Request do
   @type t :: %__MODULE__{}
 
   @doc """
+  Method to convert a OpenAperture.FleetManager.Request struct into a map
+
+  ## Options
+
+  The `request` option defines the OpenAperture.FleetManager.Request
+
+  ## Return Values
+
+  Map
+  """
+  @spec to_payload(OpenAperture.FleetManager.Request.t) :: Map
+  def to_payload(request) do
+    Map.from_struct(request)
+  end
+
+  @doc """
   Method to convert a map into a Request struct
 
   ## Options

@@ -15,7 +15,7 @@
   "openaperture_auth": {:git, "https://github.com/OpenAperture/auth.git", "227f10bc6108176523b96f016f2fc57adb472320", [ref: "227f10bc6108176523b96f016f2fc57adb472320"]},
   "openaperture_fleet": {:git, "https://github.com/OpenAperture/fleet.git", "2e63b7889c76f4d3b749146f3ebceb01702cf012", [ref: "2e63b7889c76f4d3b749146f3ebceb01702cf012"]},
   "openaperture_manager_api": {:git, "https://github.com/OpenAperture/manager_api.git", "8e2f6bdbf9f93dcae2540b1313f9d6dfc0a254a6", [ref: "8e2f6bdbf9f93dcae2540b1313f9d6dfc0a254a6"]},
-  "openaperture_messaging": {:git, "https://github.com/OpenAperture/messaging.git", "f1bce6a6e889aa4f59728462bf4acab7bcbb7db6", [ref: "f1bce6a6e889aa4f59728462bf4acab7bcbb7db6"]},
+  "openaperture_messaging": {:git, "https://github.com/OpenAperture/messaging.git", "fa8eb8128176d010d29780251e4ce500068e3ec1", [ref: "fa8eb8128176d010d29780251e4ce500068e3ec1"]},
   "openaperture_overseer_api": {:git, "https://github.com/OpenAperture/overseer_api.git", "25c779ea50565cdb3f783cba644294e6238ed72a", [ref: "25c779ea50565cdb3f783cba644294e6238ed72a"]},
   "poison": {:hex, :poison, "1.3.1"},
   "rabbit_common": {:hex, :rabbit_common, "3.5.0"},
