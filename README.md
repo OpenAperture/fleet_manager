@@ -6,16 +6,26 @@ The FleetManager module provides a standardized mechanism to execute Fleet comma
 
 The FleetManager module is responsible for the following actions within OpenAperture:
 
-* 
+* Retrieving a list of Machines from a remote Cluster
+* Retrieving a list of Units from a remote Cluster
+* Retrieving a list of Unit States from a remote Cluster
+* Retrieving Unit Logs from a remote Cluster
 
 ## Messaging / Communication
 
-The following message(s) may be sent to the FleetManager. 
+The following RPC message(s) may be sent to the FleetManager:
 
-* Request config & build for a Workflow
+* Request a Fleet Action
 	* Queue:  fleet_manager
 	* Payload (Map)
-		* force_build
+		* 
+      %{
+        status: <atom>,
+        request_body: %{
+          etcd_token: <etcd_token>,
+          action: :list_machines | :list_units | :list_unit_states | :unit_logs
+        }
+      }
 
 ## Module Configuration
 
