@@ -117,7 +117,7 @@ defmodule OpenAperture.FleetManager.DispatcherTest do
     :meck.new(SubscriptionHandler, [:passthrough])
     :meck.expect(SubscriptionHandler, :acknowledge_rpc, fn _,_,_,request -> 
       assert request.status == :error
-      assert request.response_body == "bad news bears"
+      assert request.response_body != nil
       :ok 
     end)
 

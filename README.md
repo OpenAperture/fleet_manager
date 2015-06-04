@@ -1,5 +1,7 @@
 # OpenAperture.FleetManager
  
+[![Build Status](https://semaphoreci.com/api/v1/projects/715c63e3-718c-4e95-9d8c-81ee27e1ede9/443243/badge.svg)](https://semaphoreci.com/perceptive/fleet_manager) 
+ 
 The FleetManager module provides a standardized mechanism to execute Fleet commands to EtcdClusters through the OpenAperture system.
 
 ## Module Responsibilities
