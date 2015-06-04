@@ -12,7 +12,6 @@ defmodule OpenAperture.FleetManager.DispatcherTest do
   alias OpenAperture.Messaging.RpcRequest
 
   alias OpenAperture.FleetManager.MessageManager
-  alias OpenAperture.FleetManager.Request, as: FleetRequest
   alias OpenAperture.FleetManager.FleetActions  
 
   # ===================================

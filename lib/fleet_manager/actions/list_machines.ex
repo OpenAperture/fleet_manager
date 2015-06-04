@@ -4,6 +4,7 @@ defmodule OpenAperture.FleetManager.FleetAction.ListMachines do
   This module executes the following FleetManager action:  :list_machines
   """  
 
+  alias OpenAperture.FleetManager.FleetAction.FleetResponse
 	alias OpenAperture.FleetManager.Request, as: FleetRequest
 	alias FleetApi.Etcd, as: FleetApi
 
@@ -16,12 +17,12 @@ defmodule OpenAperture.FleetManager.FleetAction.ListMachines do
 
   ## Return Value
 
-  {:ok, response} | {:error, reason}
+  {:ok, List} | {:error, reason}
   """
-	@spec execute(FleetRequest.t) :: {:ok, term} | {:error, String.t}
+	@spec execute(FleetRequest.t) :: {:ok, List} | {:error, String.t}
 	def execute(fleet_request) do
     case FleetApi.start_link(fleet_request.etcd_token) do
-    	{:ok, api_pid} -> FleetApi.list_machines(api_pid)
+    	{:ok, api_pid} -> FleetResponse.parse(FleetApi.list_machines(api_pid))
     	{:error, reason} -> {:error, reason}
     end
 	end
