@@ -32,7 +32,7 @@ defmodule OpenAperture.FleetManager.Dispatcher do
   def start_link do
     case GenServer.start_link(__MODULE__, %{}, name: __MODULE__) do
       {:error, reason} -> 
-        Logger.error("Failed to start OpenAperture FleetManager:  #{inspect reason}")
+        Logger.error("[Dispatcher] Failed to start OpenAperture FleetManager:  #{inspect reason}")
         {:error, reason}
       {:ok, pid} ->
         try do
@@ -40,14 +40,14 @@ defmodule OpenAperture.FleetManager.Dispatcher do
             case register_queues do
               {:ok, _} -> {:ok, pid}
               {:error, reason} -> 
-                Logger.error("Failed to register FleetManager queues:  #{inspect reason}")
+                Logger.error("[Dispatcher] Failed to register FleetManager queues:  #{inspect reason}")
                 {:ok, pid}
             end       
           else
             {:ok, pid}
           end
         rescue e in _ ->
-          Logger.error("An error occurred registering FleetManager queues:  #{inspect e}")
+          Logger.error("[Dispatcher] An error occurred registering FleetManager queues:  #{inspect e}")
           {:ok, pid}
         end
     end
@@ -62,7 +62,7 @@ defmodule OpenAperture.FleetManager.Dispatcher do
   """
   @spec register_queues() :: :ok | {:error, String.t()}
   def register_queues do
-    Logger.debug("Registering FleetManager queues...")
+    Logger.debug("[Dispatcher] Registering FleetManager queues...")
     fleet_manager_queue = QueueBuilder.build(ManagerApi.get_api, Configuration.get_current_queue_name, Configuration.get_current_exchange_id)
 
     options = OpenAperture.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerApi.get_api, Configuration.get_current_broker_id)
@@ -86,16 +86,18 @@ defmodule OpenAperture.FleetManager.Dispatcher do
   def process_request(delivery_tag, payload) do
     request = RpcRequest.from_payload(payload)
     try do
-      Logger.debug("Starting to process request #{delivery_tag}...")
+      Logger.debug("[Dispatcher] Starting to process request #{delivery_tag}...")
       fleet_request = FleetRequest.from_payload(request.request_body)
 
       request = case FleetActions.execute(fleet_request) do
         {:ok, response} ->
+          Logger.debug("[Dispatcher] Request #{delivery_tag} responded successfully:  #{inspect response}")
           %{request | 
             status: :completed,
             response_body: response,
           }
         {:error, reason} ->
+          Logger.debug("[Dispatcher] Request #{delivery_tag} responded failed:  #{inspect reason}")
           %{request | 
             status: :error,
             response_body: %{errors: ["#{inspect reason}"]},
@@ -104,7 +106,7 @@ defmodule OpenAperture.FleetManager.Dispatcher do
       acknowledge(delivery_tag, request)
     catch
       :exit, code   -> 
-        error_msg = "Message #{delivery_tag} Exited with code #{inspect code}"
+        error_msg = "[Dispatcher] Message #{delivery_tag} Exited with code #{inspect code}"
         Logger.error(error_msg)
         request = %{request | 
           status: :error,
@@ -112,7 +114,7 @@ defmodule OpenAperture.FleetManager.Dispatcher do
         }
         acknowledge(delivery_tag, request)
       :throw, value -> 
-        error_msg = "Message #{delivery_tag} Throw called with #{inspect value}"
+        error_msg = "[Dispatcher] Message #{delivery_tag} Throw called with #{inspect value}"
         Logger.error(error_msg)
         request = %{request | 
           status: :error,
@@ -120,7 +122,7 @@ defmodule OpenAperture.FleetManager.Dispatcher do
         }
         acknowledge(delivery_tag, request)
       what, value   -> 
-        error_msg = "Message #{delivery_tag} Caught #{inspect what} with #{inspect value}"
+        error_msg = "[Dispatcher] Message #{delivery_tag} Caught #{inspect what} with #{inspect value}"
         Logger.error(error_msg)
         request = %{request | 
           status: :error,
@@ -144,7 +146,7 @@ defmodule OpenAperture.FleetManager.Dispatcher do
   def acknowledge(delivery_tag, request) do
     message = MessageManager.remove(delivery_tag)
     unless message == nil do
-      Logger.debug("Acknowledging message #{delivery_tag}...")
+      Logger.debug("[Dispatcher] Acknowledging message #{delivery_tag}...")
       SubscriptionHandler.acknowledge_rpc(message[:subscription_handler], delivery_tag, ManagerApi.get_api, request)
     end
   end
@@ -164,7 +166,7 @@ defmodule OpenAperture.FleetManager.Dispatcher do
   def reject(delivery_tag, request, redeliver \\ false) do
     message = MessageManager.remove(delivery_tag)
     unless message == nil do
-      Logger.debug("Rejecting message #{delivery_tag}...")
+      Logger.debug("[Dispatcher] Rejecting message #{delivery_tag}...")
       SubscriptionHandler.reject_rpc(message[:subscription_handler], delivery_tag, ManagerApi.get_api, request, redeliver)
     end
   end
