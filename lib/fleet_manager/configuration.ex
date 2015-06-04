@@ -13,7 +13,6 @@ defmodule OpenAperture.FleetManager.Configuration do
   """ 
   @spec get_current_exchange_id() :: String.t()
   def get_current_exchange_id do
-    System.get_env()
     get_config("EXCHANGE_ID", :openaperture_fleet_manager, :exchange_id)
   end
 
@@ -28,7 +27,6 @@ defmodule OpenAperture.FleetManager.Configuration do
   """ 
   @spec get_current_broker_id() :: String.t()
   def get_current_broker_id do
-    System.get_env()
     get_config("BROKER_ID", :openaperture_fleet_manager, :broker_id)
   end
 
