@@ -1,3 +1,4 @@
+require Logger
 defmodule OpenAperture.FleetManager.FleetAction.ListUnits do
 
   @moduledoc """
@@ -22,7 +23,26 @@ defmodule OpenAperture.FleetManager.FleetAction.ListUnits do
 	@spec execute(FleetRequest.t) :: {:ok, term} | {:error, String.t}
 	def execute(fleet_request) do
     case FleetApi.start_link(fleet_request.etcd_token) do
-    	{:ok, api_pid} -> FleetResponse.parse(FleetApi.list_units(api_pid))
+    	{:ok, api_pid} -> 
+        case FleetResponse.parse(FleetApi.list_units(api_pid)) do
+          {:error, reason} -> {:error, reason}
+          {:ok, nil} -> {:ok, nil}
+          {:ok, []} -> {:ok, []}
+          {:ok, raw_units} ->
+            {:ok, (Enum.reduce raw_units, [], fn(unit, units) ->
+              if unit != nil do
+                if unit.options != nil && length(unit.options) > 0 do
+                  case FleetResponse.parse({:ok, unit.options}) do
+                    {:ok, options} -> unit = Map.put(unit, :options, options)
+                    {:error, reason} -> Logger.error("Failed to parse unit options (#{inspect unit}):  #{inspect reason}")         
+                  end
+                end
+                units ++ [unit]
+              else
+                units
+              end
+            end)}
+        end
     	{:error, reason} -> {:error, reason}
     end
 	end
