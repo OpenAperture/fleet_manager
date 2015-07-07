@@ -45,7 +45,7 @@ defmodule OpenAperture.FleetManager.Mixfile do
       {:openaperture_overseer_api, git: "https://github.com/OpenAperture/overseer_api.git", ref: "25c779ea50565cdb3f783cba644294e6238ed72a", override: true},
       {:openaperture_fleet, git: "https://github.com/OpenAperture/fleet.git", ref: "714c52b5258f96e741b57c73577431caa6f480b3", override: true},
       {:timex, "~> 0.12.9"},
-      {:fleet_api, "~> 0.0.8"},
+      {:fleet_api, "~> 0.0.10", override: true},
 
       #test dependencies
       {:exvcr, github: "parroty/exvcr", only: :test},
