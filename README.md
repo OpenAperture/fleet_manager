@@ -12,6 +12,7 @@ The FleetManager module is responsible for the following actions within OpenAper
 * Retrieving a list of Units from a remote Cluster
 * Retrieving a list of Unit States from a remote Cluster
 * Retrieving Unit Logs from a remote Cluster
+* Retrieving information about a Node in a remote Cluster
 
 ## Messaging / Communication
 
