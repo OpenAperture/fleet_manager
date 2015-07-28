@@ -22,5 +22,5 @@ ssh -o StrictHostKeyChecking=no core@<%= host_ip %> "cat /etc/os-release"
 echo "Docker Version:"
 ssh -o StrictHostKeyChecking=no core@<%= host_ip %> "docker version"
 
-ssh-agent -k
 echo "Node Info commands finished successfully!"
+ssh-agent -k

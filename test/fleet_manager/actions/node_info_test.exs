@@ -86,5 +86,35 @@ defmodule OpenAperture.FleetManager.FleetAction.NodeInfoTest do
   after
     :meck.unload(File)
     :meck.unload(System)
-  end  
+  end 
+
+  # ================================ 
+  # parse_script_output tests
+
+  test "parse_script_output properly formatted" do
+    output = "Prepping SSH keys...\nAgent pid 92\nDocker Disk Space:\n/dev/xvdd          50269  6003     41691  13% /var/lib/docker\nCoreOS Version:\nNAME=CoreOS\nID=coreos\nVERSION=717.3.0\nVERSION_ID=717.3.0\nBUILD_ID=\nPRETTY_NAME=\"CoreOS 717.3.0\"\nANSI_COLOR=\"1;32\"\nHOME_URL=\"https://coreos.com/\"\nBUG_REPORT_URL=\"https://github.com/coreos/bugs/issues\"\nDocker Version:\nClient version: 1.6.2\nClient API version: 1.18\nGo version (client): go1.4.2\\\nGit commit (client): 7c8fca2-dirty\nOS/Arch (client): linux/amd64\nServer version: 1.6.2\nServer API version: 1.18\nGo version (server): go1.4.2\nGit commit (server): 7c8fca2-dirty\nOS/Arch (server): linux/amd64\nNode Info commands finished successfully!\nunset SSH_AUTH_SOCK;\nunset SSH_AGENT_PID;\necho Agent pid 92 killed;\n"
+    node_info = NodeInfo.parse_script_output(output)
+    assert node_info != nil
+    assert node_info[:coreos_version] == "\nNAME=CoreOS\nID=coreos\nVERSION=717.3.0\nVERSION_ID=717.3.0\nBUILD_ID=\nPRETTY_NAME=\"CoreOS 717.3.0\"\nANSI_COLOR=\"1;32\"\nHOME_URL=\"https://coreos.com/\"\nBUG_REPORT_URL=\"https://github.com/coreos/bugs/issues\""
+    assert node_info[:docker_disk_space_percent] == 13
+    assert node_info[:docker_version] == "\nClient version: 1.6.2\nClient API version: 1.18\nGo version (client): go1.4.2\\\nGit commit (client): 7c8fca2-dirty\nOS/Arch (client): linux/amd64\nServer version: 1.6.2\nServer API version: 1.18\nGo version (server): go1.4.2\nGit commit (server): 7c8fca2-dirty\nOS/Arch (server): linux/amd64"
+  end
+
+  test "parse_script_output empty output" do
+    output = ""
+    node_info = NodeInfo.parse_script_output(output)
+    assert node_info != nil
+    assert node_info[:coreos_version] == nil
+    assert node_info[:docker_disk_space_percent] == nil
+    assert node_info[:docker_version] == nil
+  end
+
+  test "parse_script_output bad output" do
+    output = "Prepping SSH keys...\nAgent pid 92\nDocker Disk Space:\n/dev/xvdd  /var/lib/docker\nCoreOS Version:\nNAME=CoreOS\nID=cAME=\"CoreOS 717.3.0\"\nANSI_COLOR=\"1;32\"\nHOME_URL=\"https://coreos.com/\"\nBUG_REPORT_URL=\"https://github.com/coreos/bugs/issues\"\nDocker Version:\nClient version: 1.6.2\nClient API version: 1.18\nGo version (client): go1.4.2\\\nGit commit (client): 7c8fca2-dirty\nOS/Arch (client): linux/amd64\nServer version: 1.6.2\nServer API version: 1.18\nGo version (server): go1.4.2\nGit comArch (server): linux/amd64\nNode Info commands finished successfully!\nunset SSH_AUTH_SOCK;\nunset SSH_AGENT_PID;\necho Agent pid 92 killed;\n"
+    node_info = NodeInfo.parse_script_output(output)
+    assert node_info != nil
+    assert node_info[:coreos_version] != nil
+    assert node_info[:docker_disk_space_percent] == 0
+    assert node_info[:docker_version] != nil
+  end
 end
