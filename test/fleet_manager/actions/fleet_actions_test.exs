@@ -7,6 +7,7 @@ defmodule OpenAperture.FleetManager.FleetActionsTest do
   alias OpenAperture.FleetManager.FleetAction.ListUnits
   alias OpenAperture.FleetManager.FleetAction.ListUnitStates
   alias OpenAperture.FleetManager.FleetAction.UnitLogs
+  alias OpenAperture.FleetManager.FleetAction.NodeInfo
 
   # ===================================
   # execute tests
@@ -66,4 +67,15 @@ defmodule OpenAperture.FleetManager.FleetActionsTest do
   after
     :meck.unload(UnitLogs)
   end    
+
+  test "execute - :node_info" do
+    :meck.new(NodeInfo, [:passthrough])
+    :meck.expect(NodeInfo, :execute, fn _ -> {:ok, %{}} end)
+    
+    {status, response} = FleetActions.execute(%FleetRequest{action: :node_info})
+    assert status == :ok
+    assert response != nil
+  after
+    :meck.unload(NodeInfo)
+  end 
 end
