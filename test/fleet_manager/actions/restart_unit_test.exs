@@ -4,14 +4,10 @@ defmodule OpenAperture.FleetManager.FleetAction.RestartUnitTest do
   alias OpenAperture.FleetManager.Request, as: FleetRequest
   alias OpenAperture.FleetManager.FleetAction.RestartUnit
 
+  alias OpenAperture.Fleet.EtcdCluster
+
   # ===================================
   # execute tests
-
-  test "execute - invalid host_ip" do
-    {status, response} = RestartUnit.execute(%FleetRequest{})
-    assert status == :error
-    assert response != nil
-  end   
 
   test "execute - no unit_name" do
     {status, response} = RestartUnit.execute(%FleetRequest{
@@ -23,7 +19,25 @@ defmodule OpenAperture.FleetManager.FleetAction.RestartUnitTest do
     assert response != nil
   end   
 
-  test "execute - nodes" do
+  test "execute - no hosts available" do
+    :meck.new(EtcdCluster, [:passthrough])
+    :meck.expect(EtcdCluster, :get_hosts, fn _ -> [] end)
+
+    {status, response} = RestartUnit.execute(%FleetRequest{
+      action_parameters: %{
+        unit_name: "test@.service"
+      }
+    })
+    assert status == :error
+    assert response != nil
+  after
+    :meck.unload(EtcdCluster)
+  end  
+
+  test "execute - success" do
+    :meck.new(EtcdCluster, [:passthrough])
+    :meck.expect(EtcdCluster, :get_hosts, fn _ -> [%FleetApi.Machine{primaryIP: "123.234.456.789"}, %FleetApi.Machine{primaryIP: "234.456.789.123"}] end)
+
     template = File.read!("#{System.cwd!()}/templates/node-info.sh.eex")
 
     :meck.new(File, [:unstick])
@@ -51,11 +65,15 @@ defmodule OpenAperture.FleetManager.FleetAction.RestartUnitTest do
     assert status == :ok
     assert response != nil
   after
+    :meck.unload(EtcdCluster)
     :meck.unload(File)
     :meck.unload(System)
   end  
 
-  test "execute - node info fails" do
+  test "execute - fails" do
+    :meck.new(EtcdCluster, [:passthrough])
+    :meck.expect(EtcdCluster, :get_hosts, fn _ -> [%FleetApi.Machine{primaryIP: "123.234.456.789"}, %FleetApi.Machine{primaryIP: "234.456.789.123"}] end)
+
     template = File.read!("#{System.cwd!()}/templates/node-info.sh.eex")
 
     :meck.new(File, [:unstick])
@@ -83,6 +101,7 @@ defmodule OpenAperture.FleetManager.FleetAction.RestartUnitTest do
     assert status == :error
     assert response != nil
   after
+    :meck.unload(EtcdCluster)
     :meck.unload(File)
     :meck.unload(System)
   end 

@@ -8,6 +8,8 @@ defmodule OpenAperture.FleetManager.FleetAction.RestartUnit do
 
   alias OpenAperture.FleetManager.Request, as: FleetRequest
 
+  alias OpenAperture.Fleet.EtcdCluster
+
   @doc """
   Method to execute the following FleetManager action:  :restart_unit
 
@@ -22,9 +24,26 @@ defmodule OpenAperture.FleetManager.FleetAction.RestartUnit do
   @spec execute(FleetRequest.t) :: {:ok, Map} | {:error, String.t}
   def execute(fleet_request) do
     cond do
-      fleet_request.action_parameters[:host_ip] == nil -> {:error, "An invalid 'host_ip' parameter was provided!"}
       fleet_request.action_parameters[:unit_name] == nil -> {:error, "An invalid 'unit_name' parameter was provided!"}
-      true -> execute_script(fleet_request.action_parameters[:host_ip], fleet_request.action_parameters[:unit_name])
+      true -> 
+        hosts = EtcdCluster.get_hosts(fleet_request.etcd_token)
+        if hosts == nil || length(hosts) == 0 do
+          {:error, "Unable to find a valid host - No hosts are available in cluster #{fleet_request.etcd_token}!"}
+        else
+          cur_hosts_cnt = length(hosts)
+          if cur_hosts_cnt == 1 do
+            host = List.first(hosts)
+          else
+            :random.seed(:os.timestamp)
+            host = List.first(Enum.shuffle(hosts))
+          end
+
+          if (host != nil && host.primaryIP != nil) do
+            execute_script(host.primaryIP, fleet_request.action_parameters[:unit_name])
+          else
+            {:error, "Host does not have a valid primaryIP:  #{inspect host}"}
+          end
+        end
     end
   end
 
