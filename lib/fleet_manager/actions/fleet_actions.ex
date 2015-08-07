@@ -10,6 +10,7 @@ defmodule OpenAperture.FleetManager.FleetActions do
 	alias OpenAperture.FleetManager.FleetAction.ListUnitStates
 	alias OpenAperture.FleetManager.FleetAction.UnitLogs
   alias OpenAperture.FleetManager.FleetAction.NodeInfo
+  alias OpenAperture.FleetManager.FleetAction.RestartUnit
 	
   @doc """
   Method to execute FleetManager actions
@@ -30,6 +31,7 @@ defmodule OpenAperture.FleetManager.FleetActions do
 			:list_unit_states -> ListUnitStates.execute(fleet_request)
 			:unit_logs -> UnitLogs.execute(fleet_request)
       :node_info -> NodeInfo.execute(fleet_request)
+      :restart_unit -> RestartUnit.execute(fleet_request)
 			unknown -> {:error, "The following FleetManager action is not supported:  #{inspect unknown}"}
 		end
 	end
