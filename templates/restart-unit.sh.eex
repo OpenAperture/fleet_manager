@@ -16,22 +16,18 @@ fi
 echo "Stopping unit..."
 yes | fleetctl --tunnel=<%= host_ip %> stop <%= unit_name %>
 if [ $? -ne 0 ]; then
-	if [ <%= verify_result %> = true ] ; then
-	  echo "Fleet Stop command has failed!!"
-	  ssh-agent -k
-	  exit 1
-	fi
+	echo "Fleet Stop command has failed!!"
+	ssh-agent -k
+	exit 1
 fi
 
 # Done setting up SSH keys
 echo "Starting unit..."
 yes | fleetctl --tunnel=<%= host_ip %> start <%= unit_name %>
 if [ $? -ne 0 ]; then
-	if [ <%= verify_result %> = true ] ; then
-	  echo "Fleet Start command has failed!!"
-	  ssh-agent -k
-	  exit 1
-	fi
+	echo "Fleet Start command has failed!!"
+	ssh-agent -k
+	exit 1
 fi
 
 ssh-agent -k
