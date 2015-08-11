@@ -114,7 +114,8 @@ defmodule OpenAperture.FleetManager.Dispatcher do
           response_body: %{errors: [error_msg]}
         }
         event = %{
-        type: :unhandled_exception, 
+          unique: true,
+          type: :unhandled_exception, 
           severity: :error, 
           data: %{
             component: :fleet_manager,
@@ -133,7 +134,8 @@ defmodule OpenAperture.FleetManager.Dispatcher do
           response_body: %{errors: [error_msg]}
         }
         event = %{
-        type: :unhandled_exception, 
+          unique: true,
+          type: :unhandled_exception, 
           severity: :error, 
           data: %{
             component: :fleet_manager,
@@ -152,7 +154,8 @@ defmodule OpenAperture.FleetManager.Dispatcher do
           response_body: %{errors: [error_msg]}
         }      
         event = %{
-        type: :unhandled_exception, 
+          unique: true,
+          type: :unhandled_exception, 
           severity: :error, 
           data: %{
             component: :fleet_manager,
