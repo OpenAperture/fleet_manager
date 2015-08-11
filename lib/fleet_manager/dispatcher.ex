@@ -11,6 +11,7 @@ defmodule OpenAperture.FleetManager.Dispatcher do
   alias OpenAperture.FleetManager.FleetActions
 
   alias OpenAperture.ManagerApi
+  alias OpenAperture.ManagerApi.SystemEvent
 
   @moduledoc """
   This module contains the logic to dispatch Builder messsages to the appropriate GenServer(s) 
@@ -112,6 +113,17 @@ defmodule OpenAperture.FleetManager.Dispatcher do
           status: :error,
           response_body: %{errors: [error_msg]}
         }
+        event = %{
+        type: :unhandled_exception, 
+          severity: :error, 
+          data: %{
+            component: :fleet_manager,
+            exchange_id: Configuration.get_current_exchange_id,
+            hostname: System.get_env("HOSTNAME")
+          },
+          message: error_msg
+        }       
+        SystemEvent.create_system_event!(ManagerApi.get_api, event)            
         acknowledge(delivery_tag, request)
       :throw, value -> 
         error_msg = "[Dispatcher] Message #{delivery_tag} Throw called with #{inspect value}"
@@ -120,6 +132,17 @@ defmodule OpenAperture.FleetManager.Dispatcher do
           status: :error,
           response_body: %{errors: [error_msg]}
         }
+        event = %{
+        type: :unhandled_exception, 
+          severity: :error, 
+          data: %{
+            component: :fleet_manager,
+            exchange_id: Configuration.get_current_exchange_id,
+            hostname: System.get_env("HOSTNAME")
+          },
+          message: error_msg
+        }       
+        SystemEvent.create_system_event!(ManagerApi.get_api, event)         
         acknowledge(delivery_tag, request)
       what, value   -> 
         error_msg = "[Dispatcher] Message #{delivery_tag} Caught #{inspect what} with #{inspect value}"
@@ -127,7 +150,18 @@ defmodule OpenAperture.FleetManager.Dispatcher do
         request = %{request | 
           status: :error,
           response_body: %{errors: [error_msg]}
-        }        
+        }      
+        event = %{
+        type: :unhandled_exception, 
+          severity: :error, 
+          data: %{
+            component: :fleet_manager,
+            exchange_id: Configuration.get_current_exchange_id,
+            hostname: System.get_env("HOSTNAME")
+          },
+          message: error_msg
+        }       
+        SystemEvent.create_system_event!(ManagerApi.get_api, event)           
         acknowledge(delivery_tag, request)
     end       
   end
