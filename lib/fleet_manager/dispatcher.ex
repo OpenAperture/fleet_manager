@@ -87,28 +87,31 @@ defmodule OpenAperture.FleetManager.Dispatcher do
   def process_request(delivery_tag, payload) do
     request = RpcRequest.from_payload(payload)
     try do
-      Logger.debug("[Dispatcher] Starting to process request #{delivery_tag}...")
+      Logger.debug("[Dispatcher][Request][#{delivery_tag}] Processing...")
       fleet_request = FleetRequest.from_payload(request.request_body)
 
       request = case FleetActions.execute(fleet_request) do
         {:ok, response} ->
-          Logger.debug("[Dispatcher] Request #{delivery_tag} responded successfully:  #{inspect response}")
+          Logger.debug("[Dispatcher][Request][#{delivery_tag}] Completed successfully")
           %{request | 
             status: :completed,
             response_body: response,
           }
         {:error, reason} ->
-          Logger.debug("[Dispatcher] Request #{delivery_tag} responded failed:  #{inspect reason}")
+          Logger.debug("[Dispatcher][Request][#{delivery_tag}] Failed:  #{inspect reason}")
           %{request | 
             status: :error,
             response_body: %{errors: ["#{inspect reason}"]},
           }
       end
+      Logger.debug("[Dispatcher][Request][#{delivery_tag}] Attempting to acknowledge...")
       acknowledge(delivery_tag, request)
+      Logger.debug("[Dispatcher][Request][#{delivery_tag}] Completed processing")
     catch
       :exit, code   -> 
-        error_msg = "[Dispatcher] Message #{delivery_tag} Exited with code #{inspect code}"
+        error_msg = "[Dispatcher][Request][#{delivery_tag}] Exited with code #{inspect code}"
         Logger.error(error_msg)
+        acknowledge(delivery_tag, request)        
         request = %{request | 
           status: :error,
           response_body: %{errors: [error_msg]}
@@ -125,10 +128,10 @@ defmodule OpenAperture.FleetManager.Dispatcher do
           message: error_msg
         }       
         SystemEvent.create_system_event!(ManagerApi.get_api, event)            
-        acknowledge(delivery_tag, request)
       :throw, value -> 
-        error_msg = "[Dispatcher] Message #{delivery_tag} Throw called with #{inspect value}"
+        error_msg = "[Dispatcher][Request][#{delivery_tag}] Throw called with #{inspect value}"
         Logger.error(error_msg)
+        acknowledge(delivery_tag, request)        
         request = %{request | 
           status: :error,
           response_body: %{errors: [error_msg]}
@@ -145,10 +148,10 @@ defmodule OpenAperture.FleetManager.Dispatcher do
           message: error_msg
         }       
         SystemEvent.create_system_event!(ManagerApi.get_api, event)         
-        acknowledge(delivery_tag, request)
       what, value   -> 
-        error_msg = "[Dispatcher] Message #{delivery_tag} Caught #{inspect what} with #{inspect value}"
+        error_msg = "[Dispatcher][Request][#{delivery_tag}] Caught #{inspect what} with #{inspect value}"
         Logger.error(error_msg)
+        acknowledge(delivery_tag, request)        
         request = %{request | 
           status: :error,
           response_body: %{errors: [error_msg]}
@@ -165,7 +168,6 @@ defmodule OpenAperture.FleetManager.Dispatcher do
           message: error_msg
         }       
         SystemEvent.create_system_event!(ManagerApi.get_api, event)           
-        acknowledge(delivery_tag, request)
     end       
   end
 
@@ -183,8 +185,10 @@ defmodule OpenAperture.FleetManager.Dispatcher do
   def acknowledge(delivery_tag, request) do
     message = MessageManager.remove(delivery_tag)
     unless message == nil do
-      Logger.debug("[Dispatcher] Acknowledging message #{delivery_tag}...")
       SubscriptionHandler.acknowledge_rpc(message[:subscription_handler], delivery_tag, ManagerApi.get_api, request)
+      Logger.debug("[Dispatcher][Request][#{delivery_tag}] Acknowledged message...")
+    else
+      Logger.error("[Dispatcher][Request][#{delivery_tag}] Unable to acknowledge message, MessageManager does not have a record!")
     end
   end
 
@@ -203,8 +207,10 @@ defmodule OpenAperture.FleetManager.Dispatcher do
   def reject(delivery_tag, request, redeliver \\ false) do
     message = MessageManager.remove(delivery_tag)
     unless message == nil do
-      Logger.debug("[Dispatcher] Rejecting message #{delivery_tag}...")
       SubscriptionHandler.reject_rpc(message[:subscription_handler], delivery_tag, ManagerApi.get_api, request, redeliver)
+      Logger.debug("[Dispatcher][Request][#{delivery_tag}] Rejected message")      
+    else
+      Logger.error("[Dispatcher][Request][#{delivery_tag}] Unable to reject message, MessageManager does not have a record!")      
     end
   end
 end
