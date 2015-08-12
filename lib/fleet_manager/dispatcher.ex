@@ -111,11 +111,13 @@ defmodule OpenAperture.FleetManager.Dispatcher do
       :exit, code   -> 
         error_msg = "[Dispatcher][Request][#{delivery_tag}] Exited with code #{inspect code}"
         Logger.error(error_msg)
-        acknowledge(delivery_tag, request)        
+
         request = %{request | 
           status: :error,
           response_body: %{errors: [error_msg]}
-        }
+        }        
+        acknowledge(delivery_tag, request)        
+
         event = %{
           unique: true,
           type: :unhandled_exception, 
@@ -131,11 +133,13 @@ defmodule OpenAperture.FleetManager.Dispatcher do
       :throw, value -> 
         error_msg = "[Dispatcher][Request][#{delivery_tag}] Throw called with #{inspect value}"
         Logger.error(error_msg)
-        acknowledge(delivery_tag, request)        
+
         request = %{request | 
           status: :error,
           response_body: %{errors: [error_msg]}
-        }
+        }        
+        acknowledge(delivery_tag, request)        
+
         event = %{
           unique: true,
           type: :unhandled_exception, 
@@ -151,11 +155,13 @@ defmodule OpenAperture.FleetManager.Dispatcher do
       what, value   -> 
         error_msg = "[Dispatcher][Request][#{delivery_tag}] Caught #{inspect what} with #{inspect value}"
         Logger.error(error_msg)
-        acknowledge(delivery_tag, request)        
+
         request = %{request | 
           status: :error,
           response_body: %{errors: [error_msg]}
-        }      
+        }         
+        acknowledge(delivery_tag, request)             
+
         event = %{
           unique: true,
           type: :unhandled_exception, 
