@@ -73,8 +73,32 @@ defmodule OpenAperture.FleetManager.Dispatcher do
     end)
   end
 
+  @spec process_request_failure(String.t, String.t, RpcRequest.t) :: term
+  defp process_request_failure(error_msg, delivery_tag, request) do
+    Logger.error("[Dispatcher][Request][#{delivery_tag}] #{error_msg}")
+
+    request = %{request | 
+      status: :error,
+      response_body: %{errors: [error_msg]}
+    }        
+    acknowledge(delivery_tag, request)        
+
+    event = %{
+      unique: true,
+      type: :unhandled_exception, 
+      severity: :error, 
+      data: %{
+        component: :fleet_manager,
+        exchange_id: Configuration.get_current_exchange_id,
+        hostname: System.get_env("HOSTNAME")
+      },
+      message: error_msg
+    }       
+    SystemEvent.create_system_event!(ManagerApi.get_api, event)    
+  end
+
   @doc """
-  Method to process FleetManager requests
+  Method to process FleetManager requests for a defined period of time
   
   ## Options
 
@@ -86,6 +110,32 @@ defmodule OpenAperture.FleetManager.Dispatcher do
   @spec process_request(String.t(), Map) :: term
   def process_request(delivery_tag, payload) do
     request = RpcRequest.from_payload(payload)
+
+    task = Task.async(fn ->
+      process_request_internal(request, delivery_tag)
+    end)    
+
+    #attempt to execute the request for 5 minutes before failing it
+    try do
+      Task.await(task, 300_000)
+    catch
+      :exit, {:timeout, task} -> process_request_failure("Request has timed out during execution!", delivery_tag, request)
+      :exit, code -> process_request_failure("Exited with code #{inspect code}", delivery_tag, request)
+      :throw, value -> process_request_failure("Throw called with #{inspect value}", delivery_tag, request)
+      what, value -> process_request_failure("Caught #{inspect what} with #{inspect value}", delivery_tag, request)
+    end  
+  end
+
+  @doc """
+  Method to execute a FleetManager request
+  
+  ## Options
+
+  The `request` option is the parsed RpcRequest request
+
+  """
+  @spec process_request_internal(RpcRequest.t, String.t) :: term
+  def process_request_internal(request, delivery_tag) do
     try do
       Logger.debug("[Dispatcher][Request][#{delivery_tag}] Processing...")
       fleet_request = FleetRequest.from_payload(request.request_body)
@@ -109,73 +159,10 @@ defmodule OpenAperture.FleetManager.Dispatcher do
       acknowledge(delivery_tag, request)
       Logger.debug("[Dispatcher][Request][#{delivery_tag}] Completed processing")
     catch
-      :exit, code   -> 
-        error_msg = "[Dispatcher][Request][#{delivery_tag}] Exited with code #{inspect code}"
-        Logger.error(error_msg)
-
-        request = %{request | 
-          status: :error,
-          response_body: %{errors: [error_msg]}
-        }        
-        acknowledge(delivery_tag, request)        
-
-        event = %{
-          unique: true,
-          type: :unhandled_exception, 
-          severity: :error, 
-          data: %{
-            component: :fleet_manager,
-            exchange_id: Configuration.get_current_exchange_id,
-            hostname: System.get_env("HOSTNAME")
-          },
-          message: error_msg
-        }       
-        SystemEvent.create_system_event!(ManagerApi.get_api, event)            
-      :throw, value -> 
-        error_msg = "[Dispatcher][Request][#{delivery_tag}] Throw called with #{inspect value}"
-        Logger.error(error_msg)
-
-        request = %{request | 
-          status: :error,
-          response_body: %{errors: [error_msg]}
-        }        
-        acknowledge(delivery_tag, request)        
-
-        event = %{
-          unique: true,
-          type: :unhandled_exception, 
-          severity: :error, 
-          data: %{
-            component: :fleet_manager,
-            exchange_id: Configuration.get_current_exchange_id,
-            hostname: System.get_env("HOSTNAME")
-          },
-          message: error_msg
-        }       
-        SystemEvent.create_system_event!(ManagerApi.get_api, event)         
-      what, value   -> 
-        error_msg = "[Dispatcher][Request][#{delivery_tag}] Caught #{inspect what} with #{inspect value}"
-        Logger.error(error_msg)
-
-        request = %{request | 
-          status: :error,
-          response_body: %{errors: [error_msg]}
-        }         
-        acknowledge(delivery_tag, request)             
-
-        event = %{
-          unique: true,
-          type: :unhandled_exception, 
-          severity: :error, 
-          data: %{
-            component: :fleet_manager,
-            exchange_id: Configuration.get_current_exchange_id,
-            hostname: System.get_env("HOSTNAME")
-          },
-          message: error_msg
-        }       
-        SystemEvent.create_system_event!(ManagerApi.get_api, event)           
-    end       
+      :exit, code -> process_request_failure("Exited with code #{inspect code}", delivery_tag, request)
+      :throw, value -> process_request_failure("Throw called with #{inspect value}", delivery_tag, request)
+      what, value -> process_request_failure("Caught #{inspect what} with #{inspect value}", delivery_tag, request)           
+    end
   end
 
   @doc """
