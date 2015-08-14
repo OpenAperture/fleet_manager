@@ -77,6 +77,8 @@ defmodule OpenAperture.FleetManager.Dispatcher do
   defp process_request_failure(error_msg, delivery_tag, request) do
     Logger.error("[Dispatcher][Request][#{delivery_tag}] #{error_msg}")
 
+    fleet_request = FleetRequest.from_payload(request.request_body)
+
     request = %{request | 
       status: :error,
       response_body: %{errors: [error_msg]}
@@ -90,7 +92,8 @@ defmodule OpenAperture.FleetManager.Dispatcher do
       data: %{
         component: :fleet_manager,
         exchange_id: Configuration.get_current_exchange_id,
-        hostname: System.get_env("HOSTNAME")
+        hostname: System.get_env("HOSTNAME"),
+        fleet_request_action: fleet_request.action
       },
       message: error_msg
     }       
