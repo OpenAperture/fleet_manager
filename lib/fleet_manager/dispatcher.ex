@@ -119,7 +119,7 @@ defmodule OpenAperture.FleetManager.Dispatcher do
     try do
       Task.await(task, 300_000)
     catch
-      :exit, {:timeout, task} -> process_request_failure("Request has timed out during execution!", delivery_tag, request)
+      :exit, {:timeout, _task} -> process_request_failure("Request has timed out during execution!", delivery_tag, request)
       :exit, code -> process_request_failure("Exited with code #{inspect code}", delivery_tag, request)
       :throw, value -> process_request_failure("Throw called with #{inspect value}", delivery_tag, request)
       what, value -> process_request_failure("Caught #{inspect what} with #{inspect value}", delivery_tag, request)
