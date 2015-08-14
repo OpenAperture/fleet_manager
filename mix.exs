@@ -43,7 +43,7 @@ defmodule OpenAperture.FleetManager.Mixfile do
       {:openaperture_messaging, git: "https://github.com/OpenAperture/messaging.git", ref: "abb5a54cabdc9c70a3d8e22558ee9c7c227c3c22", override: true},
       {:openaperture_manager_api, git: "https://github.com/OpenAperture/manager_api.git", ref: "ab5334f276b308706a91e85ca27ba937bb02fb9f", override: true},
       {:openaperture_overseer_api, git: "https://github.com/OpenAperture/overseer_api.git", ref: "25c779ea50565cdb3f783cba644294e6238ed72a", override: true},
-      {:openaperture_fleet, git: "https://github.com/OpenAperture/fleet.git", ref: "0f5475c2b50a43318b6883decbaf9a472baab6c5", override: true},
+      {:openaperture_fleet, git: "https://github.com/OpenAperture/fleet.git", ref: "324acdae0ceecb6a954d804d56d9d2fceaeb937c", override: true},
       {:timex, "~> 0.12.9"},
       {:fleet_api, "~> 0.0.15", override: true},
       {:poison, "~> 1.4.0", override: true},

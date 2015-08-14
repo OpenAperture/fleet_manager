@@ -55,7 +55,7 @@ defmodule OpenAperture.FleetManager.FleetAction.NodeInfo do
 
     resolved_cmd = "bash #{script_file} < /dev/null"
 
-    Logger.debug ("Executing command:  #{resolved_cmd}")
+    Logger.debug ("Executing node info command:  #{resolved_cmd}")
     try do
       case System.cmd("/bin/bash", ["-c", resolved_cmd], []) do
         {stdout, 0} ->

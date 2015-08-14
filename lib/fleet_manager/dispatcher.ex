@@ -90,6 +90,7 @@ defmodule OpenAperture.FleetManager.Dispatcher do
       Logger.debug("[Dispatcher][Request][#{delivery_tag}] Processing...")
       fleet_request = FleetRequest.from_payload(request.request_body)
 
+      Logger.debug("[Dispatcher][Request][#{delivery_tag}] Requesting action #{inspect fleet_request.action}...")
       request = case FleetActions.execute(fleet_request) do
         {:ok, response} ->
           Logger.debug("[Dispatcher][Request][#{delivery_tag}] Completed successfully")
