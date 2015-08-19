@@ -10,7 +10,7 @@ defmodule OpenAperture.FleetManager do
 
   Returns `:ok` or `{:error, explanation}` otherwise.
   """
-  @spec start(:atom, [any]) :: :ok | {:error, String.t}
+  @spec start(atom, [any]) :: :ok | {:error, String.t}
   def start(_type, _args) do
     Logger.info("Starting FleetManager...")
     OpenAperture.FleetManager.Supervisor.start_link

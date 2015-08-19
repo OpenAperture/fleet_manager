@@ -18,18 +18,17 @@ defmodule OpenAperture.FleetManager.FleetAction.FleetResponse do
 	@spec parse(term) :: {:ok, term} | {:error, String.t}
 	def parse(response) do
 	  case response do
-	    {:ok, values} -> {:ok, parse_value(values)}
+	    {:ok, values}    -> {:ok, parse_value(values)}
 	    {:error, reason} -> {:error, reason}
 	  end
 	end
 
-	@spec parse_value(List) :: List
+	@spec parse_value(list) :: list
 	defp parse_value(raw_items) when is_list(raw_items) do
     Enum.reduce raw_items, [], fn(raw_item, items) ->
-      if raw_item == nil do
-        items
-      else
-        items ++ [parse_value(raw_item)]
+      case raw_item do
+        nil -> items
+        _   -> items ++ [parse_value(raw_item)]
       end
     end
 	end
