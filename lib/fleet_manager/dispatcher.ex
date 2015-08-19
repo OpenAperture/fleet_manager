@@ -110,7 +110,7 @@ defmodule OpenAperture.FleetManager.Dispatcher do
   The `payload` defines the Messaging payload
 
   """
-  @spec process_request(String.t, Map) :: term
+  @spec process_request(String.t, map) :: term
   def process_request(delivery_tag, payload) do
     request = RpcRequest.from_payload(payload)
 
@@ -147,24 +147,20 @@ defmodule OpenAperture.FleetManager.Dispatcher do
       request = case FleetActions.execute(fleet_request) do
         {:ok, response} ->
           Logger.debug("[Dispatcher][Request][#{delivery_tag}] Completed successfully")
-          %{request |
-            status: :completed,
-            response_body: response,
-          }
+          %{request | status:        :completed,
+                      response_body: response}
         {:error, reason} ->
           Logger.debug("[Dispatcher][Request][#{delivery_tag}] Failed:  #{inspect reason}")
-          %{request |
-            status: :error,
-            response_body: %{errors: ["#{inspect reason}"]},
-          }
+          %{request | status:        :error,
+                      response_body: %{errors: ["#{inspect reason}"]}}
       end
       Logger.debug("[Dispatcher][Request][#{delivery_tag}] Attempting to acknowledge...")
       acknowledge(delivery_tag, request)
       Logger.debug("[Dispatcher][Request][#{delivery_tag}] Completed processing")
     catch
-      :exit, code -> process_request_failure("Exited with code #{inspect code}", delivery_tag, request)
+      :exit,  code  -> process_request_failure("Exited with code #{inspect code}", delivery_tag, request)
       :throw, value -> process_request_failure("Throw called with #{inspect value}", delivery_tag, request)
-      what, value -> process_request_failure("Caught #{inspect what} with #{inspect value}", delivery_tag, request)
+      what,   value -> process_request_failure("Caught #{inspect what} with #{inspect value}", delivery_tag, request)
     end
   end
 

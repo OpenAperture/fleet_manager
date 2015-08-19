@@ -17,9 +17,9 @@ defmodule OpenAperture.FleetManager.FleetAction.NodeInfo do
 
   ## Return Value
 
-  {:ok, Map} | {:error, reason}
+  {:ok, map} | {:error, reason}
   """
-  @spec execute(FleetRequest.t) :: {:ok, Map} | {:error, String.t}
+  @spec execute(FleetRequest.t) :: {:ok, map} | {:error, String.t}
   def execute(fleet_request) do
     if fleet_request.action_parameters[:nodes] == nil || length(fleet_request.action_parameters[:nodes]) == 0 do
       {:error, "An invalid 'nodes' parameter was provided!"}      
@@ -78,9 +78,9 @@ defmodule OpenAperture.FleetManager.FleetAction.NodeInfo do
 
   ## Return Value
 
-  Map
+  map
   """
-  @spec parse_script_output(String.t) :: Map
+  @spec parse_script_output(String.t) :: map
   def parse_script_output(output) do
     lines = String.split(output, "\n")
     {node_info, _type} = Enum.reduce lines, {%{}, nil}, fn(line, {node_info, next_line_type}) ->

@@ -19,9 +19,9 @@ defmodule OpenAperture.FleetManager.FleetAction.RestartUnit do
 
   ## Return Value
 
-  {:ok, Map} | {:error, reason}
+  {:ok, map} | {:error, reason}
   """
-  @spec execute(FleetRequest.t) :: {:ok, Map} | {:error, String.t}
+  @spec execute(FleetRequest.t) :: {:ok, map} | {:error, String.t}
   def execute(fleet_request) do
     cond do
       fleet_request.action_parameters[:unit_name] == nil -> {:error, "An invalid 'unit_name' parameter was provided!"}
