@@ -4,6 +4,10 @@
  
 The FleetManager module provides a standardized mechanism to execute Fleet commands to EtcdClusters through the OpenAperture system.
 
+## Contributing
+
+To contribute to OpenAperture development, view our [contributing guide](http://openaperture.io/dev_resources/contributing.html)
+
 ## Module Responsibilities
 
 The FleetManager module is responsible for the following actions within OpenAperture:
